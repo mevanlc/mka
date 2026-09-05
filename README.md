@@ -108,7 +108,9 @@ Symbolic links may require operating-system privileges, notably Developer Mode
 or equivalent permission on Windows. Symlink targets may be dangling. On
 Windows, an existing target determines whether a file or directory link is
 created. A missing target ending in a path separator is treated as a directory;
-other missing targets are treated as files.
+other missing targets are treated as files. Windows removes that trailing kind
+marker from the stored symlink target because retaining it produces an invalid
+reparse target; Unix stores the target exactly as written after `@` decoding.
 
 Path syntax, permissions, and the final operating-system error text may differ
 between platforms. Runtime failures exit with status 1, invalid command-line

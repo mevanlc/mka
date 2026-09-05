@@ -50,6 +50,20 @@ pub(crate) fn ends_in_separator(value: &OsStr) -> bool {
 }
 
 #[cfg(unix)]
+pub(crate) fn normalize_link_target(target: &Path) -> PathBuf {
+    target.to_path_buf()
+}
+
+#[cfg(windows)]
+pub(crate) fn normalize_link_target(target: &Path) -> PathBuf {
+    if ends_in_separator(target.as_os_str()) {
+        target.components().collect()
+    } else {
+        target.to_path_buf()
+    }
+}
+
+#[cfg(unix)]
 pub(crate) fn resolve_link_kind(
     _target: &Path,
     _link_name: &Path,
@@ -133,5 +147,15 @@ mod tests {
         let (decoded, marker) = decode_terminal_ats(OsStr::new("a@@b"));
         assert_eq!(decoded, OsStr::new("a@@b"));
         assert!(!marker);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_removes_a_directory_hint_from_the_stored_target() {
+        assert_eq!(
+            normalize_link_target(Path::new("missing-dir\\")),
+            Path::new("missing-dir")
+        );
+        assert_eq!(normalize_link_target(Path::new("C:\\")), Path::new("C:\\"));
     }
 }

@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use clap::{Parser, ValueEnum};
 
 use crate::error::{MkaError, Result};
-use crate::platform::{decode_terminal_ats, ends_in_separator};
+use crate::platform::{decode_terminal_ats, ends_in_separator, normalize_link_target};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
 pub(crate) enum ForcedType {
@@ -140,9 +140,10 @@ fn forced_link_request(paths: &[PathBuf]) -> Result<Vec<Request>> {
     };
     validate_link_name(&link_name)?;
 
+    let directory_hint = ends_in_separator(target.as_os_str());
     Ok(vec![Request::Link {
-        directory_hint: ends_in_separator(target.as_os_str()),
-        target,
+        target: normalize_link_target(&target),
+        directory_hint,
         link_name,
     }])
 }
@@ -195,9 +196,10 @@ fn automatic_requests(paths: &[PathBuf]) -> Result<Vec<Request>> {
     };
     validate_link_name(&link_name)?;
 
+    let directory_hint = ends_in_separator(target.as_os_str());
     Ok(vec![Request::Link {
-        directory_hint: ends_in_separator(target.as_os_str()),
-        target,
+        target: normalize_link_target(&target),
+        directory_hint,
         link_name,
     }])
 }
