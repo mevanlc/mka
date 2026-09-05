@@ -1,0 +1,12 @@
+[package]
+name = "mka"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "mk anything: create files, directories, and symbolic links"
+
+[dependencies]
+clap = { version = "4.6", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3.27"
