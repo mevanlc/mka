@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use clap::{Parser, ValueEnum};
+use clap::{Parser, ValueEnum, ValueHint};
+use clap_complete::Shell;
 
 use crate::error::{MkaError, Result};
 use crate::platform::{decode_terminal_ats, ends_in_separator, normalize_link_target};
@@ -34,9 +35,14 @@ impl ExistingKind {
     name = "mka",
     version,
     about = "mk anything",
+    override_usage = "mka [OPTIONS] <PATH>...\n       mka --completion <SHELL>",
     after_help = "Automatic forms:\n  mka FILE...\n  mka DIR/...\n  mka TARGET@ [LINK_NAME]\n  mka [LINK_NAME] TARGET@"
 )]
 pub(crate) struct Cli {
+    /// Print a shell completion script to stdout and exit
+    #[arg(long, value_name = "SHELL", exclusive = true)]
+    pub(crate) completion: Option<Shell>,
+
     /// Use suffix-based type inference (the default)
     #[arg(short = 'a', long, conflicts_with_all = ["no_auto", "forced_type"])]
     pub(crate) auto: bool,
@@ -69,7 +75,12 @@ pub(crate) struct Cli {
     pub(crate) no_exist_ok: Option<ExistingKind>,
 
     /// Paths to create
-    #[arg(value_name = "PATH", required = true, allow_hyphen_values = true)]
+    #[arg(
+        value_name = "PATH",
+        required = true,
+        allow_hyphen_values = true,
+        value_hint = ValueHint::AnyPath
+    )]
     pub(crate) paths: Vec<PathBuf>,
 }
 

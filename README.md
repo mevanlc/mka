@@ -4,10 +4,10 @@
 directories, and symbolic links through one compact command. It supports macOS,
 Linux, Windows, FreeBSD, NetBSD, and OpenBSD.
 
-Success is silent. Creating an object that already has the requested type is
-normally a no-op: existing regular files are not truncated or touched, existing
-directories are accepted, and existing symbolic links are accepted only when
-their stored target is exactly the requested target.
+Successful creation is silent. Creating an object that already has the requested
+type is normally a no-op: existing regular files are not truncated or touched,
+existing directories are accepted, and existing symbolic links are accepted only
+when their stored target is exactly the requested target.
 
 ## Usage
 
@@ -101,6 +101,25 @@ Wrong types and special filesystem entries are always errors. `mka` preflights
 the complete request graph before making changes, so predictable errors do not
 partially create an operand batch. A filesystem race after preflight can still
 leave earlier successful creations in place.
+
+### Shell completions
+
+`mka --completion <shell>` prints a completion script to stdout. Supported shells
+are `bash`, `elvish`, `fish`, `powershell`, and `zsh`. Use this option on its own;
+it does not create filesystem objects.
+
+```sh
+# Load completions in the current Bash session
+source <(mka --completion bash)
+
+# Load completions in Zsh after initializing its completion system
+autoload -Uz compinit && compinit
+source <(mka --completion zsh)
+
+# Install Fish completions
+mkdir -p ~/.config/fish/completions
+mka --completion fish > ~/.config/fish/completions/mka.fish
+```
 
 ## Platform notes
 
