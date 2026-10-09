@@ -24,9 +24,9 @@ jobs:
           RUSTDOCFLAGS: -D warnings
         run: cargo +stable doc --no-deps --locked
       - name: Install MSRV
-        run: rustup toolchain install 1.85.0 --profile minimal --no-self-update
+        run: rustup toolchain install 1.98.0 --profile minimal --no-self-update
       - name: Check MSRV
-        run: cargo +1.85.0 check --all-targets --locked
+        run: cargo +1.98.0 check --all-targets --locked
 
   mainstream:
     name: Test on ${{ matrix.os }}
@@ -43,20 +43,35 @@ jobs:
         uses: taiki-e/install-action@c6702eacb5b86c67cc1f5b92f3c9e322e1a687b7 # nextest
       - name: Test
         run: cargo +stable nextest run --locked
+        env:
+          MKA_EXPECT_NATIVE_MOVE: '1'
 
   freebsd:
-    name: Test on FreeBSD 15.1
+    name: Test on FreeBSD ${{ matrix.release }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - release: '15.1'
+            native: '1'
+          - release: '15.0'
+            native: '0'
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Run in FreeBSD
         uses: vmactions/freebsd-vm@f0552d3b69211736abd97f02ff3d4674c56b73b1 # v1.5.5
         with:
-          release: "15.1"
+          release: ${{ matrix.release }}
           copyback: false
-          prepare: pkg install -y rust
+          prepare: |
+            set -eu
+            fetch -o /tmp/rustup-init https://static.rust-lang.org/rustup/dist/x86_64-unknown-freebsd/rustup-init
+            chmod +x /tmp/rustup-init
+            /tmp/rustup-init -y --profile minimal --default-toolchain 1.98.0 --no-modify-path
           run: |
-            export PATH="/usr/local/bin:$PATH"
+            export PATH="$HOME/.cargo/bin:$PATH"
+            export MKA_EXPECT_NATIVE_MOVE='${{ matrix.native }}'
             cargo test --all-targets --locked
 
   netbsd:
@@ -69,13 +84,18 @@ jobs:
         with:
           release: "11.0"
           copyback: false
-          prepare: /usr/sbin/pkg_add rust
+          prepare: |
+            set -eu
+            ftp -o /tmp/rustup-init https://static.rust-lang.org/rustup/dist/x86_64-unknown-netbsd/rustup-init
+            chmod +x /tmp/rustup-init
+            /tmp/rustup-init -y --profile minimal --default-toolchain 1.98.0 --no-modify-path
           run: |
-            export PATH="/usr/pkg/bin:$PATH"
+            export PATH="$HOME/.cargo/bin:/usr/pkg/bin:$PATH"
+            export MKA_EXPECT_NATIVE_MOVE='0'
             cargo test --all-targets --locked
 
   openbsd:
-    name: Test on OpenBSD 7.9
+    name: Test on OpenBSD 7.9 (packaged Rust)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -87,4 +107,8 @@ jobs:
           prepare: pkg_add rust
           run: |
             export PATH="/usr/local/bin:$PATH"
-            cargo test --all-targets --locked
+            export MKA_EXPECT_NATIVE_MOVE='0'
+            # OpenBSD has no official Rust host toolchain distribution. The 7.9
+            # package is older than our declared minimum; exercise runtime
+            # behavior with it while the quality job enforces Rust 1.98.
+            cargo test --all-targets --locked --ignore-rust-version

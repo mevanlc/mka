@@ -7,7 +7,12 @@ use crate::cli::{Cli, ExistingKind, Request, requests};
 use crate::error::{MkaError, Result};
 use crate::platform::{self, LinkKind};
 
+mod moving;
+
 pub(crate) fn run(cli: Cli) -> Result<()> {
+    if cli.move_mode {
+        return moving::run(cli);
+    }
     let requests = requests(&cli)?;
     let mut plan = Plan::new(cli.no_parents, cli.no_exist_ok);
     for request in requests {
