@@ -84,14 +84,18 @@ jobs:
         with:
           release: "11.0"
           copyback: false
-          prepare: /usr/sbin/pkg_add rust
+          prepare: |
+            set -eu
+            ftp -o /tmp/rustup-init https://static.rust-lang.org/rustup/dist/x86_64-unknown-netbsd/rustup-init
+            chmod +x /tmp/rustup-init
+            /tmp/rustup-init -y --profile minimal --default-toolchain 1.98.0 --no-modify-path
           run: |
-            export PATH="/usr/pkg/bin:$PATH"
+            export PATH="$HOME/.cargo/bin:/usr/pkg/bin:$PATH"
             export MKA_EXPECT_NATIVE_MOVE='0'
             cargo test --all-targets --locked
 
   openbsd:
-    name: Test on OpenBSD 7.9
+    name: Test on OpenBSD 7.9 (packaged Rust)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -104,4 +108,7 @@ jobs:
           run: |
             export PATH="/usr/local/bin:$PATH"
             export MKA_EXPECT_NATIVE_MOVE='0'
-            cargo test --all-targets --locked
+            # OpenBSD has no official Rust host toolchain distribution. The 7.9
+            # package is older than our declared minimum; exercise runtime
+            # behavior with it while the quality job enforces Rust 1.98.
+            cargo test --all-targets --locked --ignore-rust-version
