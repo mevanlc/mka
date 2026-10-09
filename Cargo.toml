@@ -2,12 +2,13 @@
 name = "mka"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
-description = "mk anything: create files, directories, and symbolic links"
+rust-version = "1.98"
+description = "mk anything: create filesystem objects or move them into new directories"
 
 [dependencies]
 clap = { version = "4.6", features = ["derive"] }
 clap_complete = "4.6"
+renamore = { git = "https://github.com/mevanlc/renamore", rev = "dd2b533f9ef24e85d6fcc710e657140f344a63f3" }
 
 [dev-dependencies]
 tempfile = "3.27"

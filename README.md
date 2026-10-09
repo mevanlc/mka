@@ -1,8 +1,8 @@
 # mka
 
 `mka` means “mk anything.” It creates regular files, directories, missing parent
-directories, and symbolic links through one compact command. It supports macOS,
-Linux, Windows, FreeBSD, NetBSD, and OpenBSD.
+directories, and symbolic links, and moves existing objects into new directories.
+It supports macOS, Linux, Windows, FreeBSD, NetBSD, and OpenBSD.
 
 Successful creation is silent. Creating an object that already has the requested
 type is normally a no-op: existing regular files are not truncated or touched,
@@ -102,6 +102,47 @@ the complete request graph before making changes, so predictable errors do not
 partially create an operand batch. A filesystem race after preflight can still
 leave earlier successful creations in place.
 
+### Moving existing objects
+
+Use `-m` / `--move` to move files, directories, or symbolic links. Missing
+destination directories are created automatically:
+
+```console
+mka -m report.pdf archive/2026/       # archive/2026/report.pdf
+mka -m report.pdf archive/renamed.pdf # archive/renamed.pdf
+mka -m a.txt b.txt new-folder/        # new-folder/a.txt and new-folder/b.txt
+```
+
+The last operand is the destination. With one source, a trailing separator or
+an existing directory means “move into this directory”; otherwise it is the
+exact new path. With multiple sources, the destination is always a directory,
+even without a trailing separator. An existing symlink to a directory may be
+used as a destination directory or intermediate parent.
+
+Move mode treats `@` literally and conflicts with `--auto`, `--no-auto`, and
+`--type`. Use `--` before operands that begin with a hyphen. A source symlink
+is moved itself, including when dangling, and its stored target is preserved;
+a relative target may resolve differently after the move. A trailing separator
+on a source is accepted only for an actual directory.
+
+`--no-parents` requires all destination directories to exist. `--no-exist-ok`
+applies only to named destination components, never source components.
+Every occupied final destination is an error, including a dangling symlink or
+empty directory. Directories are moved whole; their contents are never merged.
+
+The complete batch is checked for missing sources, collisions, overlapping
+source directories, and destinations inside a moved directory before changes
+begin. Parent aliases are resolved during planning. Native no-replace renames
+also prevent overwriting a destination created after preflight. A runtime
+failure stops the batch and may leave created directories and earlier moves
+in place; there is no rollback.
+
+Moves are supported on Linux, macOS, Windows, and FreeBSD where native
+no-replace renames are available. Older FreeBSD installations, NetBSD, and
+OpenBSD report unsupported moves. Unsupported filesystems and moves across
+filesystems also produce errors: there is no copy-and-delete or non-atomic
+fallback. Successful moves are silent.
+
 ### Shell completions
 
 `mka --completion <shell>` prints a completion script to stdout. Supported shells
@@ -144,7 +185,8 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo fmt --check
 ```
 
-The minimum supported Rust version is 1.85.
+The minimum supported Rust version is 1.98. Move operations use a pinned Git
+revision of [our Renamore fork](https://github.com/mevanlc/renamore).
 
 ## Future ideas
 

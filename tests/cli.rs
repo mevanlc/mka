@@ -17,6 +17,8 @@ fn help_describes_the_auto_and_forced_interfaces() {
     assert!(stdout.contains("-t, --type <TYPE>"));
     assert!(stdout.contains("--no-exist-ok[=<TYPE>]"));
     assert!(stdout.contains("mka --completion <SHELL>"));
+    assert!(stdout.contains("-m, --move"));
+    assert!(stdout.contains("mka --move [OPTIONS] <SOURCE>... <DEST>"));
     assert!(stdout.contains("mka TARGET@ [LINK_NAME]"));
     assert!(output.stderr.is_empty());
 }
@@ -28,6 +30,11 @@ fn grammar_errors_exit_two() {
         vec!["--type", "l", "one", "two", "three"],
         vec!["--no-auto", "--type", "d", "path"],
         vec!["--type", "x", "path"],
+        vec!["--move", "one"],
+        vec!["--move", "--auto", "one", "two"],
+        vec!["--move", "--no-auto", "one", "two"],
+        vec!["--move", "--type", "d", "one", "two"],
+        vec!["--move", "", "two"],
     ] {
         let output = invoke(&arguments);
         assert_eq!(
@@ -75,6 +82,7 @@ fn completions_are_output_only_for_every_supported_shell() {
         assert!(stdout.contains(marker), "{shell}: {stdout}");
         assert!(stdout.contains("completion"), "{shell}: {stdout}");
         assert!(stdout.contains("no-parents"), "{shell}: {stdout}");
+        assert!(stdout.contains("move"), "{shell}: {stdout}");
         assert!(output.stderr.is_empty());
         assert_eq!(root.path().read_dir().unwrap().count(), 0);
     }
@@ -88,6 +96,7 @@ fn invalid_completion_requests_do_not_create_paths() {
         vec!["--completion", "zsh", "nested/file"],
         vec!["--completion", "zsh", "--no-parents"],
         vec!["--type", "d", "--completion", "bash", "directory"],
+        vec!["--move", "--completion", "bash"],
     ] {
         let root = tempfile::tempdir().unwrap();
         let output = Command::new(env!("CARGO_BIN_EXE_mka"))

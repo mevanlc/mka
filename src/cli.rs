@@ -35,13 +35,17 @@ impl ExistingKind {
     name = "mka",
     version,
     about = "mk anything",
-    override_usage = "mka [OPTIONS] <PATH>...\n       mka --completion <SHELL>",
-    after_help = "Automatic forms:\n  mka FILE...\n  mka DIR/...\n  mka TARGET@ [LINK_NAME]\n  mka [LINK_NAME] TARGET@"
+    override_usage = "mka [OPTIONS] <PATH>...\n       mka --move [OPTIONS] <SOURCE>... <DEST>\n       mka --completion <SHELL>",
+    after_help = "Automatic forms:\n  mka FILE...\n  mka DIR/...\n  mka TARGET@ [LINK_NAME]\n  mka [LINK_NAME] TARGET@\n\nMove forms (never overwrite; same filesystem only):\n  mka -m FILE new/dir/\n  mka -m FILE new/name\n  mka -m SOURCE... DIR"
 )]
 pub(crate) struct Cli {
     /// Print a shell completion script to stdout and exit
     #[arg(long, value_name = "SHELL", exclusive = true)]
     pub(crate) completion: Option<Shell>,
+
+    /// Move SOURCE... to DEST, creating missing directories and refusing overwrites
+    #[arg(short = 'm', long = "move", conflicts_with_all = ["auto", "no_auto", "forced_type"])]
+    pub(crate) move_mode: bool,
 
     /// Use suffix-based type inference (the default)
     #[arg(short = 'a', long, conflicts_with_all = ["no_auto", "forced_type"])]
@@ -74,7 +78,7 @@ pub(crate) struct Cli {
     )]
     pub(crate) no_exist_ok: Option<ExistingKind>,
 
-    /// Paths to create
+    /// Paths to create, or SOURCE... DEST with --move
     #[arg(
         value_name = "PATH",
         required = true,
@@ -82,6 +86,26 @@ pub(crate) struct Cli {
         value_hint = ValueHint::AnyPath
     )]
     pub(crate) paths: Vec<PathBuf>,
+}
+
+#[derive(Debug)]
+pub(crate) struct MoveRequest {
+    pub(crate) sources: Vec<PathBuf>,
+    pub(crate) destination: PathBuf,
+}
+
+pub(crate) fn move_request(cli: &Cli) -> Result<MoveRequest> {
+    if cli.paths.len() < 2 {
+        return Err(MkaError::usage("--move requires SOURCE... and DEST"));
+    }
+    for path in &cli.paths {
+        validate_nonempty(path, "move path")?;
+    }
+    let (destination, sources) = cli.paths.split_last().expect("at least two paths");
+    Ok(MoveRequest {
+        sources: sources.to_vec(),
+        destination: destination.clone(),
+    })
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
