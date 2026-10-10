@@ -125,7 +125,7 @@ impl MovePlan {
     }
 
     fn execute(self) -> Result<()> {
-        self.execute_with(|source, destination| renamore::rename_exclusive(source, destination))
+        self.execute_with(|source, destination| renamest::rename_exclusive(source, destination))
     }
 
     fn execute_with(self, mut rename: impl FnMut(&Path, &Path) -> io::Result<()>) -> Result<()> {
@@ -164,9 +164,9 @@ fn ensure_platform_support() -> Result<()> {
     }
     #[cfg(target_os = "freebsd")]
     {
-        // Empty operands cannot name or mutate an entry. The fork resolves the
+        // Empty operands cannot name or mutate an entry. The library resolves the
         // API before examining them, so this also detects older libc/kernels.
-        if let Err(error) = renamore::rename_exclusive("", "")
+        if let Err(error) = renamest::rename_exclusive("", "")
             && error.kind() == io::ErrorKind::Unsupported
         {
             return Err(MkaError::runtime(

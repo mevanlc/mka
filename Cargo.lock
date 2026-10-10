@@ -176,7 +176,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "clap_complete",
- "renamore",
+ "renamest",
  "tempfile",
 ]
 
@@ -217,9 +217,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
-name = "renamore"
-version = "0.3.2"
-source = "git+https://github.com/mevanlc/renamore?rev=dd2b533f9ef24e85d6fcc710e657140f344a63f3#dd2b533f9ef24e85d6fcc710e657140f344a63f3"
+name = "renamest"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4190ee2e3adef8bab6cf25cb6a5fc30cf836b6f3fe10e6f54330ab62cab23a34"
 dependencies = [
  "libc",
 ]

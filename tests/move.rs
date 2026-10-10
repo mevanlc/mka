@@ -36,7 +36,7 @@ fn native_available(root: &Path) -> bool {
     let source = root.join("probe-source");
     let destination = root.join("probe-destination");
     fs::write(&source, b"probe").unwrap();
-    match renamore::rename_exclusive(&source, &destination) {
+    match renamest::rename_exclusive(&source, &destination) {
         Ok(()) => {
             fs::remove_file(destination).unwrap();
             true

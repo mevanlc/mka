@@ -185,8 +185,8 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo fmt --check
 ```
 
-The minimum supported Rust version is 1.98. Move operations use a pinned Git
-revision of [our Renamore fork](https://github.com/mevanlc/renamore).
+The minimum supported Rust version is 1.98. Move operations use
+[Renamest](https://crates.io/crates/renamest) from crates.io.
 CI checks Rust 1.98 explicitly. OpenBSD 7.9 runtime tests use its older packaged
 compiler with Cargo's `--ignore-rust-version` because an official Rust host
 toolchain is unavailable there; this does not establish supported builds on
